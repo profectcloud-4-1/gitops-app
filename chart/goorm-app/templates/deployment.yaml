@@ -22,7 +22,6 @@ spec:
       {{- end }}
     spec:
       serviceAccountName: {{ include "goorm-app.serviceAccountName" . }}
-      {{- with .Values.image.pullSecret }}
       {{- if .Values.image.pullSecret }}
       imagePullSecrets:
         - name: {{ .Values.image.pullSecret }}
