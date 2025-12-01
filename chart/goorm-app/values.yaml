@@ -38,6 +38,8 @@ config:
     ORDER_SERVICE_URL: "http://order:8080"
     PAYMENT_SERVICE_URL: "http://payment:8080"
 
+    OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector-collector.observability.svc.cluster.local:4317"
+
 secrets:
   enabled: true
   name: goorm/msa/secret

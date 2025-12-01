@@ -2,8 +2,8 @@ replicaCount: 1
 app: auth-gateway
 
 image:
-  repository: auth-gateway
-  tag: "latest"
+  repository: 803733722005.dkr.ecr.ap-northeast-2.amazonaws.com/dev/auth
+  tag: "120101"
   pullPolicy: IfNotPresent
 
 config:
