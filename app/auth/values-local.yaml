@@ -5,6 +5,7 @@ image:
   repository: 803733722005.dkr.ecr.ap-northeast-2.amazonaws.com/dev/auth
   tag: "120101"
   pullPolicy: IfNotPresent
+  pullSecret: goorm-ecr-secret
 
 config:
   enabled: true
