@@ -1,0 +1,4 @@
+# Ignore Helm templates to prevent Prettier from breaking Go templating
+chart/**/templates/**
+
+
