@@ -21,6 +21,9 @@ config:
 secrets:
   enabled: true
   name: goorm/msa/secret
+  secretStoreRef:
+    name: goorm-app-secret-store
+    kind: ClusterSecretStore
   data:
     - key: REDIS_HOST
       property: redis.host
