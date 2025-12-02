@@ -1,8 +1,8 @@
 replicaCount: 1
-app: auth-gateway
+app: order
 
 image:
-  repository: 803733722005.dkr.ecr.ap-northeast-2.amazonaws.com/dev/auth
+  repository: 803733722005.dkr.ecr.ap-northeast-2.amazonaws.com/dev/order
   tag: "120101"
   pullPolicy: IfNotPresent
 
@@ -13,10 +13,6 @@ config:
     REDIS_SSL_ENABLED: "false"
     REDIS_COMMAND_TIMEOUT: "2000"
     REDIS_CONNECT_TIMEOUT: "2000"
-
-    OAUTH_ISSUER_URI: "https://public.goorm.store"
-    OAUTH_JWK_SET_URI: "https://public.goorm.store/jwks.json"
-    OAUTH_AUDIENCE: "goormdotcom-aud"
 
 secrets:
   enabled: true
@@ -35,3 +31,9 @@ secrets:
       property: redis.password
     - key: REDIS_SSL_ENABLED
       property: redis.ssl_enabled
+    - key: DB_URL
+      property: order.db.url
+    - key: DB_USERNAME
+      property: order.db.username
+    - key: DB_PASSWORD
+      property: order.db.password

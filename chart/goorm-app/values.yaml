@@ -40,6 +40,11 @@ config:
 
     OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector-collector.observability.svc.cluster.local:4317"
 
+    DB_DRIVER: "jdbc.postgresql.Driver"
+
+    REDIS_COMMAND_TIMEOUT: "2000"
+    REDIS_CONNECT_TIMEOUT: "2000"
+
 secrets:
   enabled: true
   name: goorm/msa/secret

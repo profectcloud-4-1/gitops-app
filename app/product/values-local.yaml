@@ -1,0 +1,59 @@
+replicaCount: 1
+app: product
+
+image:
+  repository: 803733722005.dkr.ecr.ap-northeast-2.amazonaws.com/dev/product
+  tag: "120101"
+  pullPolicy: IfNotPresent
+  pullSecret: goorm-ecr-secret
+
+config:
+  enabled: true
+  data:
+    # Redis
+    REDIS_SSL_ENABLED: "false"
+    REDIS_COMMAND_TIMEOUT: "2000"
+    REDIS_CONNECT_TIMEOUT: "2000"
+
+    BASE_OFF_MS: "1000"
+    MAX_RETRIES: "3"
+
+    AWS_DEFAULT_IMAGE: "none"
+    AWS_S3_REGION: "ap-northeast-2"
+    AWS_S3_BUCKET: "goorm-presigned-bucket"
+
+    PRODUCT_ORIGIN_MAX_CONCURRENT_CALLS: "10"
+    PRODUCT_ORIGIN_CONNECTION_TIMEOUT: "2000"
+    PRODUCT_ORIGIN_LIMIT_FOR_PERIOD: "1000"
+    PRODUCT_ORIGIN_LIMIT_REFRESH_PERIOD: "60000"
+    PRODUCT_ORIGIN_TIMEOUT_DURATION: "2000"
+
+secrets:
+  enabled: true
+  name: goorm/msa/secret
+  secretStoreRef:
+    name: goorm-app-secret-store
+    kind: ClusterSecretStore
+  data:
+    - key: REDIS_HOST
+      property: redis.host
+    - key: REDIS_PORT
+      property: redis.port
+    - key: REDIS_DATABASE
+      property: redis.database
+    - key: REDIS_PASSWORD
+      property: redis.password
+    - key: REDIS_SSL_ENABLED
+      property: redis.ssl_enabled
+    - key: DB_URL
+      property: product.db.url
+    - key: DB_USERNAME
+      property: product.db.username
+    - key: DB_PASSWORD
+      property: product.db.password
+    - key: AWS_CLOUDFRONT_DOMAIN
+      property: product.cloudfront_domain
+    - key: AWS_S3_ACCESS_KEY
+      property: product.s3.access_key
+    - key: AWS_S3_SECRET_KEY
+      property: product.s3.secret_key

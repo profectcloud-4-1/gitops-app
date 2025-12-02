@@ -1,0 +1,32 @@
+replicaCount: 1
+app: payment
+
+image:
+  repository: 803733722005.dkr.ecr.ap-northeast-2.amazonaws.com/dev/payment
+  tag: "120101"
+  pullPolicy: IfNotPresent
+
+config:
+  enabled: true
+  data:
+    # Toss
+    TOSS_SUCCESS_URL: "https://api.goorm.store/api/v1/payment/toss/success"
+    TOSS_FAIL_URL: "https://api.goorm.store/api/v1/payment/toss/fail"
+
+secrets:
+  enabled: true
+  name: goorm/msa/secret
+  secretStoreRef:
+    name: goorm-app-secret-store
+    kind: ClusterSecretStore
+  data:
+    - key: DB_URL
+      property: payment.db.url
+    - key: DB_USERNAME
+      property: payment.db.username
+    - key: DB_PASSWORD
+      property: payment.db.password
+    - key: TOSS_CLIENT_API_KEY
+      property: payment.toss.client_key
+    - key: TOSS_SECRET_API_KEY
+      property: payment.toss.secret_key

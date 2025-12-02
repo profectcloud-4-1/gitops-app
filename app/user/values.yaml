@@ -1,8 +1,8 @@
 replicaCount: 1
-app: auth-gateway
+app: user
 
 image:
-  repository: 803733722005.dkr.ecr.ap-northeast-2.amazonaws.com/dev/auth
+  repository: 803733722005.dkr.ecr.ap-northeast-2.amazonaws.com/dev/user
   tag: "120101"
   pullPolicy: IfNotPresent
 
@@ -14,9 +14,10 @@ config:
     REDIS_COMMAND_TIMEOUT: "2000"
     REDIS_CONNECT_TIMEOUT: "2000"
 
-    OAUTH_ISSUER_URI: "https://public.goorm.store"
-    OAUTH_JWK_SET_URI: "https://public.goorm.store/jwks.json"
-    OAUTH_AUDIENCE: "goormdotcom-aud"
+    JWT_ISSUER: "https://public.goorm.store"
+    JWT_AUDIENCE: "goormdotcom-aud"
+    JWT_ACCESS_EXPIRATION: "3600"
+    JWT_REFRESH_EXPIRATION: "86400"
 
 secrets:
   enabled: true
@@ -35,3 +36,11 @@ secrets:
       property: redis.password
     - key: REDIS_SSL_ENABLED
       property: redis.ssl_enabled
+    - key: DB_URL
+      property: user.db.url
+    - key: DB_USERNAME
+      property: user.db.username
+    - key: DB_PASSWORD
+      property: user.db.password
+    - key: JWT_SECRET
+      property: user.jwt_secret
