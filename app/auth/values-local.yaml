@@ -4,7 +4,7 @@ fullnameOverride: auth-gateway
 
 image:
   repository: 803733722005.dkr.ecr.ap-northeast-2.amazonaws.com/dev/auth
-  tag: "120101"
+  tag: "120301-arm"
   pullPolicy: IfNotPresent
   pullSecret: goorm-ecr-secret
 
