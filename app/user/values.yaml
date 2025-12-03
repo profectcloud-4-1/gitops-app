@@ -1,5 +1,6 @@
 replicaCount: 1
 app: user
+fullnameOverride: user
 
 image:
   repository: 803733722005.dkr.ecr.ap-northeast-2.amazonaws.com/dev/user
