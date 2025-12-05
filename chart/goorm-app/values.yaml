@@ -40,7 +40,7 @@ config:
 
     OTEL_EXPORTER_OTLP_ENDPOINT: "http://otel-collector-collector.observability.svc.cluster.local:4317"
 
-    DB_DRIVER: "jdbc.postgresql.Driver"
+    DB_DRIVER: "org.postgresql.Driver"
 
     REDIS_COMMAND_TIMEOUT: "2000"
     REDIS_CONNECT_TIMEOUT: "2000"
