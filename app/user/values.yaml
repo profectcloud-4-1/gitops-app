@@ -4,7 +4,7 @@ fullnameOverride: user
 
 image:
   repository: 803733722005.dkr.ecr.ap-northeast-2.amazonaws.com/dev/user
-  tag: "120101"
+  tag: "120501"
   pullPolicy: IfNotPresent
 
 config:
@@ -33,8 +33,6 @@ secrets:
       property: redis.port
     - key: REDIS_DATABASE
       property: redis.database
-    - key: REDIS_PASSWORD
-      property: redis.password
     - key: REDIS_SSL_ENABLED
       property: redis.ssl_enabled
     - key: DB_URL
