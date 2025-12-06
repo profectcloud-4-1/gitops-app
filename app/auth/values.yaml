@@ -19,6 +19,8 @@ config:
     OAUTH_JWK_SET_URI: "https://public.goorm.store/jwks.json"
     OAUTH_AUDIENCE: "goormdotcom-aud"
 
+    OTEL_INSTRUMENTATION_HTTP_SERVER_SPAN_NAME: "{method} {url.path}"
+
 secrets:
   enabled: true
   name: goorm/msa/secret
