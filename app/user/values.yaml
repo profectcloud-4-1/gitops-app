@@ -17,8 +17,8 @@ config:
 
     JWT_ISSUER: "https://public.goorm.store"
     JWT_AUDIENCE: "goormdotcom-aud"
-    JWT_ACCESS_EXPIRATION: "3600"
-    JWT_REFRESH_EXPIRATION: "86400"
+    JWT_ACCESS_EXPIRATION: "604800000"
+    JWT_REFRESH_EXPIRATION: "604800000"
 
 secrets:
   enabled: true
