@@ -26,6 +26,10 @@ spec:
       imagePullSecrets:
         - name: {{ .Values.image.pullSecret }}
       {{- end }}
+      {{- with .Values.nodeSelector }}
+      nodeSelector:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
       containers:
         - name: {{ include "goorm-app.name" . }}
           image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
