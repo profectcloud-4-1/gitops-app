@@ -4,7 +4,7 @@ fullnameOverride: payment
 
 image:
   repository: 803733722005.dkr.ecr.ap-northeast-2.amazonaws.com/dev/payment
-  tag: "120802"
+  tag: "120704"
   pullPolicy: IfNotPresent
 
 config:
