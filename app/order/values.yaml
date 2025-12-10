@@ -4,7 +4,7 @@ fullnameOverride: order
 
 image:
   repository: 803733722005.dkr.ecr.ap-northeast-2.amazonaws.com/dev/order
-  tag: "120901"
+  tag: "121001"
   pullPolicy: IfNotPresent
 
 config:
@@ -36,3 +36,9 @@ secrets:
       property: order.db.username
     - key: DB_PASSWORD
       property: order.db.password
+    - key: KAFKA_BOOTSTRAP_SERVERS
+      property: spring.kafka.bootstrap.servers
+    - key: KAFKA_SASL_USERNAME
+      property: spring.kafka.username
+    - key: KAFKA_SASL_PASSWORD
+      property: spring.kafka.password
