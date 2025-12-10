@@ -43,10 +43,10 @@ jobs:
             git show origin/${{ github.base_ref }}:"$file" > before.yaml 2>/dev/null || touch before.yaml
             git show ${{ github.sha }}:"$file" > after.yaml
 
-            # dyff diff → raw output → first column is YAML path
+            # dyff simple output에서 path만 추출
             dyff between before.yaml after.yaml \
-              --omit-header --change-set --output raw \
-              | awk '{print $1}' > changed_paths.txt || true
+              --omit-header --output simple \
+              | awk -F ' -> ' '{print $1}' > changed_paths.txt || true
 
             echo "Changed YAML paths:"
             cat changed_paths.txt || echo "(none)"
