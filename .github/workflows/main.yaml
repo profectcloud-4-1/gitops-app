@@ -19,13 +19,9 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install -y jq
-
-          # yq 설치 (GitHub Actions에서 허용되는 경로)
-          sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 \
-            -O /usr/local/bin/yq
+          sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq
           sudo chmod +x /usr/local/bin/yq
 
-          echo "Versions:"
           yq --version
           jq --version
 
@@ -45,55 +41,52 @@ jobs:
         run: |
           FAILED=0
 
+          cat > diff.jq << 'EOF'
+            def walk_paths(prefix):
+              if type == "object" then
+                to_entries[] | (.value | walk_paths(prefix + "." + .key))
+              elif type == "array" then
+                to_entries[] | (.value | walk_paths(prefix + "[" + (.key|tostring) + "]"))
+              else
+                prefix
+              end;
+
+            def flatten_paths:
+              walk_paths("") | select(length > 0);
+
+            # before paths
+            $before = (input | flatten_paths | unique);
+
+            # after paths
+            $after  = (input | flatten_paths | unique);
+
+            # changed paths only
+            ($before - $after),
+            ($after - $before)
+          EOF
+
           echo "Changed values.yaml files:"
           echo "${{ steps.changes.outputs.all_changed_files }}"
 
           for file in ${{ steps.changes.outputs.all_changed_files }}; do
             echo "Checking file: $file"
 
-            # before.yaml (base branch)
             git show origin/${{ github.base_ref }}:"$file" > before.yaml 2>/dev/null || touch before.yaml
-            # after.yaml (PR head)
             git show ${{ github.sha }}:"$file" > after.yaml
 
             # YAML → JSON
             yq -o=json eval "." before.yaml > before.json
             yq -o=json eval "." after.yaml > after.json
 
-            # JSON diff: 변경된 경로만 추출
-            jq -r '
-              # JSON 구조 순회하여 leaf path 추출
-              def walk_paths(prefix):
-                if type == "object" then
-                  to_entries[] | (.value | walk_paths(prefix + "." + .key))
-                elif type == "array" then
-                  to_entries[] | (.value | walk_paths(prefix + "[" + (.key|tostring) + "]"))
-                else
-                  prefix
-                end;
-
-              def flatten_paths:
-                walk_paths("") | select(length > 0);
-
-              # before.json 의 path 목록
-              $before = (input | flatten_paths | unique);
-              # after.json 의 path 목록
-              $after  = (input | flatten_paths | unique);
-
-              # 변경된 path만 출력
-              ($before - $after),
-              ($after - $before)
-            ' before.json after.json \
-            | sort -u > changed_paths.txt
+            # JSON diff → changed_paths.txt
+            jq -f diff.jq before.json after.json | sort -u > changed_paths.txt
 
             echo "Changed YAML paths:"
             cat changed_paths.txt || echo "(none)"
 
-            # config.*, secrets.* 경로만 허용
             ONLY_ALLOWED=$(grep -E '^(config|secrets)(\.|\[|$)' changed_paths.txt || true)
             DISALLOWED=$(grep -vE '^(config|secrets)(\.|\[|$)' changed_paths.txt || true)
 
-            # 혼합 변경 → 실패
             if [[ -n "$ONLY_ALLOWED" && -n "$DISALLOWED" ]]; then
               echo "❌ ERROR: $file has BOTH secret/config changes AND other rollout changes."
               FAILED=1
