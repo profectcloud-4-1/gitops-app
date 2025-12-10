@@ -15,12 +15,31 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install dyff 1.7.1
+      - name: Install dyff 1.7.1 (strict)
         run: |
-          wget https://github.com/homeport/dyff/releases/download/v1.7.1/dyff_1.7.1_linux_amd64.tar.gz
-          tar -xvf dyff_1.7.1_linux_amd64.tar.gz
+          echo "Downloading dyff 1.7.1..."
+          wget -O dyff.tar.gz https://github.com/homeport/dyff/releases/download/v1.7.1/dyff_1.7.1_linux_amd64.tar.gz
+
+          echo "Extracting..."
+          tar -xzvf dyff.tar.gz
+
+          # 바이너리가 맞는지 확인
+          if [ ! -f dyff ]; then
+            echo "ERROR: dyff binary not found after extraction."
+            exit 1
+          fi
+
+          chmod +x dyff
           sudo mv dyff /usr/local/bin/
+
+          echo "dyff version:"
           dyff version
+
+          # version 검증 (정말 1.7.1인지 체크)
+          if ! dyff version | grep -q "1.7.1"; then
+            echo "ERROR: dyff is NOT version 1.7.1. Aborting."
+            exit 1
+          fi
 
       - name: Detect changed values files
         id: changes
@@ -44,12 +63,10 @@ jobs:
           for file in ${{ steps.changes.outputs.all_changed_files }}; do
             echo "Checking file: $file"
 
-            # before (Base branch)
             git show origin/${{ github.base_ref }}:"$file" > before.yaml 2>/dev/null || touch before.yaml
-            # after (PR head)
             git show ${{ github.sha }}:"$file" > after.yaml
 
-            # dyff v1.7.1: change-set + raw mode → first column = YAML path
+            # dyff 1.7.1: change-set + raw → perfect
             dyff between before.yaml after.yaml \
               --omit-header --change-set --output raw \
               | awk '{print $1}' > changed_paths.txt || true
