@@ -4,7 +4,7 @@ fullnameOverride: auth-gateway
 
 image:
   repository: 803733722005.dkr.ecr.ap-northeast-2.amazonaws.com/dev/auth
-  tag: "120507"
+  tag: "120801"
   pullPolicy: IfNotPresent
 
 config:
@@ -43,4 +43,6 @@ secrets:
     - key: REDIS_TEST_SECRET_3
       property: redis.ssl_enabled
     - key: REDIS_TEST_SECRET_4
+      property: redis.ssl_enabled
+    - key: REDIS_TEST_SECRET_5
       property: redis.ssl_enabled
