@@ -15,15 +15,24 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Install yq & jq
+      - name: Install dyff 1.7.1
         run: |
-          sudo apt-get update
-          sudo apt-get install -y jq
-          sudo wget https://github.com/mikefarah/yq/releases/latest/download/yq_linux_amd64 -O /usr/local/bin/yq
-          sudo chmod +x /usr/local/bin/yq
-
-          yq --version
-          jq --version
+          echo "Downloading dyff 1.7.1..."
+          wget -O dyff.tar.gz https://github.com/homeport/dyff/releases/download/v1.7.1/dyff_1.7.1_linux_amd64.tar.gz
+          echo "Extracting..."
+          tar -xzvf dyff.tar.gz
+          if [ ! -f dyff ]; then
+            echo "ERROR: dyff binary not found after extraction."
+            exit 1
+          fi
+          chmod +x dyff
+          sudo mv dyff /usr/local/bin/
+          echo "dyff version:"
+          dyff version
+          if ! dyff version | grep -q "1.7.1"; then
+            echo "ERROR: dyff is NOT version 1.7.1. Aborting."
+            exit 1
+          fi
 
       - name: Detect changed values files
         id: changes
@@ -40,62 +49,86 @@ jobs:
         if: steps.changes.outputs.any_changed == 'true'
         run: |
           FAILED=0
-
-          cat > diff.jq << 'EOF'
-            def walk_paths(prefix):
-              if type == "object" then
-                to_entries[] | (.value | walk_paths(prefix + "." + .key))
-              elif type == "array" then
-                to_entries[] | (.value | walk_paths(prefix + "[" + (.key|tostring) + "]"))
-              else
-                prefix
-              end;
-
-            def flatten_paths:
-              walk_paths("") | select(length > 0);
-
-            # before paths
-            $before = (input | flatten_paths | unique);
-
-            # after paths
-            $after  = (input | flatten_paths | unique);
-
-            # changed paths only
-            ($before - $after),
-            ($after - $before)
-          EOF
-
           echo "Changed values.yaml files:"
           echo "${{ steps.changes.outputs.all_changed_files }}"
 
           for file in ${{ steps.changes.outputs.all_changed_files }}; do
+            echo "=========================================="
             echo "Checking file: $file"
-
+            echo "=========================================="
+            
+            # 이전 버전과 현재 버전 가져오기
             git show origin/${{ github.base_ref }}:"$file" > before.yaml 2>/dev/null || touch before.yaml
             git show ${{ github.sha }}:"$file" > after.yaml
-
-            # YAML → JSON
-            yq -o=json eval "." before.yaml > before.json
-            yq -o=json eval "." after.yaml > after.json
-
-            # JSON diff → changed_paths.txt
-            jq -f diff.jq before.json after.json | sort -u > changed_paths.txt
-
-            echo "Changed YAML paths:"
-            cat changed_paths.txt || echo "(none)"
-
-            ONLY_ALLOWED=$(grep -E '^(config|secrets)(\.|\[|$)' changed_paths.txt || true)
-            DISALLOWED=$(grep -vE '^(config|secrets)(\.|\[|$)' changed_paths.txt || true)
-
-            if [[ -n "$ONLY_ALLOWED" && -n "$DISALLOWED" ]]; then
-              echo "❌ ERROR: $file has BOTH secret/config changes AND other rollout changes."
-              FAILED=1
+            
+            # dyff 출력
+            echo "--- dyff output ---"
+            dyff between before.yaml after.yaml --omit-header > dyff_output.txt || true
+            cat dyff_output.txt
+            echo "--- end dyff output ---"
+            
+            # dyff 출력에서 YAML 경로 추출
+            # dyff 형식: 
+            # image.tag
+            #   ± value change
+            # secrets.data
+            #   + one list entry added:
+            
+            # 첫 번째 컬럼에 있는 경로들만 추출 (들여쓰기 없는 줄)
+            grep -E '^[a-zA-Z_]' dyff_output.txt > changed_paths.txt || touch changed_paths.txt
+            
+            echo "--- Extracted paths ---"
+            cat changed_paths.txt
+            echo "--- End paths ---"
+            
+            # 경로가 없으면 변경사항 없음
+            if [ ! -s changed_paths.txt ]; then
+              echo "⚠️  No changes detected for $file"
+              continue
             fi
+            
+            # config 또는 secrets로 시작하는 경로 체크
+            CONFIG_SECRET_CHANGES=$(grep -E '^(config|secrets)(\.|$)' changed_paths.txt || true)
+            OTHER_CHANGES=$(grep -vE '^(config|secrets)(\.|$)' changed_paths.txt || true)
+            
+            echo ""
+            echo "📋 Analysis:"
+            if [[ -n "$CONFIG_SECRET_CHANGES" ]]; then
+              echo "✓ Config/Secrets changes found:"
+              echo "$CONFIG_SECRET_CHANGES" | sed 's/^/  - /'
+            fi
+            if [[ -n "$OTHER_CHANGES" ]]; then
+              echo "✓ Other changes found:"
+              echo "$OTHER_CHANGES" | sed 's/^/  - /'
+            fi
+            echo ""
+            
+            # 검증 로직: config/secrets와 다른 변경이 동시에 있으면 FAIL
+            if [[ -n "$CONFIG_SECRET_CHANGES" && -n "$OTHER_CHANGES" ]]; then
+              echo "❌ ERROR: $file contains BOTH config/secrets changes AND other changes."
+              echo ""
+              echo "This PR mixes configuration updates with deployment updates."
+              echo "Please separate them into different PRs:"
+              echo "  - One PR for config/secrets changes only"
+              echo "  - Another PR for deployment changes (image tags, replicas, etc.)"
+              echo ""
+              FAILED=1
+            elif [[ -n "$CONFIG_SECRET_CHANGES" && -z "$OTHER_CHANGES" ]]; then
+              echo "✅ OK: Only config/secrets changes (no deployment changes)"
+            elif [[ -z "$CONFIG_SECRET_CHANGES" && -n "$OTHER_CHANGES" ]]; then
+              echo "✅ OK: Only deployment changes (no config/secrets)"
+            fi
+            
+            echo ""
           done
 
           if [[ "$FAILED" -eq 1 ]]; then
-            echo "❌ Validation failed."
+            echo "=========================================="
+            echo "❌ Validation FAILED"
+            echo "=========================================="
             exit 1
           fi
 
-          echo "✅ Validation passed."
+          echo "=========================================="
+          echo "✅ All validations PASSED"
+          echo "=========================================="
