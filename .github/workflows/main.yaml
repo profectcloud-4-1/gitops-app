@@ -17,8 +17,8 @@ jobs:
 
       - name: Install dyff
         run: |
-          wget https://github.com/homeport/dyff/releases/download/v1.6.3/dyff_1.6.3_linux_amd64.tar.gz
-          tar -xvf dyff_*.tar.gz
+          wget https://github.com/homeport/dyff/releases/download/v1.9.4/dyff_1.9.4_linux_amd64.tar.gz
+          tar -xvf dyff_1.9.4_linux_amd64.tar.gz
           sudo mv dyff /usr/local/bin/
 
       - name: Detect changed values files
