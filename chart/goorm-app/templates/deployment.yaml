@@ -4,6 +4,8 @@ metadata:
   name: {{ include "goorm-app.fullname" . }}
   labels:
     {{- include "goorm-app.labels" . | nindent 4 }}
+  annotations:
+    reloader.stakater.com/auto: "true"
 spec:
   replicas: {{ .Values.replicaCount }}
   selector:
