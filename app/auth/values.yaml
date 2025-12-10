@@ -44,3 +44,5 @@ secrets:
       property: redis.ssl_enabled
     - key: REDIS_TEST_SECRET_4
       property: redis.ssl_enabled
+    - key: REDIS_TEST_SECRET_5
+      property: redis.ssl_enabled
